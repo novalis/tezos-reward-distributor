@@ -87,11 +87,15 @@ class RpcRewardApiImpl(RewardApi):
                     snapshot_cycle_first_block_level = 2264608
                 # end ithaca special
             else:
-                # Testnets
+                # Testnets and private chains
                 level_of_last_block_in_cycle = (cycle + 1) * self.blocks_per_cycle
-                snapshot_cycle_first_block_level = (
-                    cycle - self.preserved_cycles
-                ) * self.blocks_per_cycle + 1
+                snapshot_cycle = cycle - self.preserved_cycles
+                if snapshot_cycle > 0:
+                    snapshot_cycle_first_block_level = (
+                        snapshot_cycle
+                    ) * self.blocks_per_cycle + 1
+                else:
+                    snapshot_cycle_first_block_level = 1
             logger.debug(
                 f"We are on {self.network}, last block in cycle {cycle} is {level_of_last_block_in_cycle}."
             )
@@ -627,8 +631,11 @@ class RpcRewardApiImpl(RewardApi):
 
                 return chosen_snapshot, level_snapshot_block
 
-        request = COMM_SNAPSHOT.format(self.node_url, query_level, cycle)
-        chosen_snapshot = self.do_rpc_request(request)
+        if cycle >= 4:
+          request = COMM_SNAPSHOT.format(self.node_url, query_level, cycle)
+          chosen_snapshot = self.do_rpc_request(request)
+        else:
+          chosen_snapshot = 1
 
         if self.network == "MAINNET":
             # Using an offset of 1589248 blocks (388 cycles pre-Granada of 4096 blocks each)

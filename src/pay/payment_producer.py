@@ -203,18 +203,20 @@ class PaymentProducer(threading.Thread, PaymentProducerABC):
                 - (self.nw_config["NB_FREEZE_CYCLE"] + 1)
                 - self.release_override
             )
-            if pymnt_cycle < 0:
-                logger.error(
-                    "Payment cycle cannot be < 0 but configuration results to {}".format(
-                        pymnt_cycle
-                    )
-                )
-            else:
-                logger.debug(
-                    "Payment cycle is set to last released cycle {}".format(pymnt_cycle)
-                )
+            logger.debug(
+                "Payment cycle is set to last released cycle {}".format(pymnt_cycle)
+            )
         else:
             pymnt_cycle = self.initial_payment_cycle
+
+        if pymnt_cycle < 0:
+            logger.error(
+               "Payment cycle cannot be < 0 but configuration results to {}".format(
+                   pymnt_cycle
+               )
+            )
+            self.exit()
+            return
 
         get_verbose_log_helper().reset(pymnt_cycle)
 
